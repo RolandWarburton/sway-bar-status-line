@@ -21,7 +21,7 @@ func (m *PublicTransport) Init() {
 				continue
 			}
 			m.Departures = departures
-			time.Sleep(60 * time.Second)
+			time.Sleep(2 * time.Minute)
 		}
 	}()
 }
