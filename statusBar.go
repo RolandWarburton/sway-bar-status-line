@@ -8,7 +8,7 @@ import (
 	modules "github.com/rolandwarburton/sway-status-line/lib/modules"
 )
 
-func printStatus(timeModule *modules.Time, battery *modules.Battery, wifi *modules.Wifi) {
+func printStatus(timeModule *modules.Time, battery *modules.Battery, wifi *modules.Wifi, ptv *modules.PublicTransport) {
 	var result string
 
 	if timeModule.Enabled {
@@ -20,6 +20,9 @@ func printStatus(timeModule *modules.Time, battery *modules.Battery, wifi *modul
 	if wifi.Enabled {
 		result = wifi.Run() + " | " + result
 	}
+	if ptv.Enabled {
+		result = ptv.Run() + " | " + result
+	}
 
 	fmt.Println(result)
 }
@@ -28,6 +31,7 @@ func main() {
 	timeModule := &modules.Time{}
 	battery := &modules.Battery{}
 	wifi := &modules.Wifi{}
+	ptv := &modules.PublicTransport{}
 
 	if os.Getenv("STATUS_SHOW_TIME") != "" {
 		timeModule.Init()
@@ -41,9 +45,13 @@ func main() {
 		wifi.Init()
 	}
 
+	if os.Getenv("STATUS_SHOW_PTV") != "" {
+		ptv.Init()
+	}
+
 	go func() {
 		for {
-			printStatus(timeModule, battery, wifi)
+			printStatus(timeModule, battery, wifi, ptv)
 			// Wait for 1 second before printing the next status
 			time.Sleep(1 * time.Second)
 		}
