@@ -47,5 +47,8 @@ func (m *PublicTransport) Run() string {
 
 	timeUntilDeparture := time.Until(departureTime).Minutes()
 	departureTimeString := departureTime.In(location).Format("03:04 PM")
+	if timeUntilDeparture < 0 {
+		departureTimeString = "waiting for next train"
+	}
 	return fmt.Sprintf("Train in %.0fmin (%s)", timeUntilDeparture, departureTimeString)
 }
