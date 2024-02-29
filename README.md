@@ -1,5 +1,7 @@
 # SWAY BAR STATUS LINE
 
+![screenshot](./assets/screenshot.png)
+
 Set the below environment variables to enable the associated module on the status line.
 
 ```bash
