@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	ptv "github.com/rolandwarburton/ptv-status-line/pkg"
@@ -9,11 +10,14 @@ import (
 
 type PublicTransport struct {
 	Module
-	Departures []ptv.Departure
+	Departures    []ptv.Departure
+	NextDeparture time.Time
+	Status        string
 }
 
 func (m *PublicTransport) Init() {
 	m.Enabled = true
+	m.Status = "loading..."
 	go func() {
 		for {
 			departures, err := ptv.DeparturesAction("Lilydale", "Southern Cross", "Lilydale", 3, "Australia/Sydney")
@@ -21,14 +25,25 @@ func (m *PublicTransport) Init() {
 				continue
 			}
 			m.Departures = departures
-			time.Sleep(2 * time.Minute)
+
+			// set the sleep time based on the last train departure
+			sleepTime := 5 * time.Minute
+			timeUntilDeparture := time.Until(m.NextDeparture).Minutes()
+			if timeUntilDeparture < 0 {
+				sleepTime = time.Duration(0)
+			}
+			if timeUntilDeparture > 5 {
+				sleepTime = time.Duration(int(math.Ceil(timeUntilDeparture-1))) * time.Minute
+			}
+
+			time.Sleep(sleepTime)
 		}
 	}()
 }
 
 func (m *PublicTransport) Run() string {
 	if len(m.Departures) == 0 {
-		return "no departures"
+		return m.Status
 	}
 	departure := m.Departures[0]
 
@@ -36,6 +51,7 @@ func (m *PublicTransport) Run() string {
 	var location *time.Location
 	layout := "02-01-2006 03:04 PM"
 	departureTime, err := time.Parse(layout, departure.ScheduledDepartureUTC)
+	m.NextDeparture = departureTime
 	if err != nil {
 		fmt.Println(err)
 		return "error"
