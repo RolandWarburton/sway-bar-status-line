@@ -12,7 +12,25 @@ type PublicTransport struct {
 	Module
 	Departures    []ptv.Departure
 	NextDeparture time.Time
+	LastPoll      time.Time
+	nextPoll      time.Time
 	Status        string
+}
+
+func (m *PublicTransport) poll() {
+	// avoid sending more than one request at a time
+	if m.Status == "polling" {
+		return
+	}
+	m.Status = "polling"
+	departures, err := ptv.DeparturesAction("Lilydale", "Southern Cross", "Lilydale", 3, "Australia/Sydney")
+	if err != nil {
+		m.Status = "error"
+		return
+	}
+	m.Departures = departures
+	m.LastPoll = time.Now()
+	m.Status = "done"
 }
 
 func (m *PublicTransport) Init() {
@@ -20,22 +38,28 @@ func (m *PublicTransport) Init() {
 	m.Status = "loading..."
 	go func() {
 		for {
-			departures, err := ptv.DeparturesAction("Lilydale", "Southern Cross", "Lilydale", 3, "Australia/Sydney")
-			if err != nil {
-				continue
-			}
-			m.Departures = departures
-
+			m.poll()
 			// set the sleep time based on the last train departure
 			sleepTime := 5 * time.Minute
-			timeUntilDeparture := time.Until(m.NextDeparture).Minutes()
-			if timeUntilDeparture < 0 {
-				sleepTime = time.Duration(0)
-			}
-			if timeUntilDeparture > 5 {
-				sleepTime = time.Duration(int(math.Ceil(timeUntilDeparture-1))) * time.Minute
+			var seccondsUntilDeparture float64
+
+			// if we are loading then wait 5s to throttle retries
+			if m.Status == "loading..." {
+				seccondsUntilDeparture = 5
+			} else {
+				seccondsUntilDeparture = time.Until(m.NextDeparture).Seconds()
 			}
 
+			// if the train left
+			if seccondsUntilDeparture < 0 {
+				sleepTime = time.Duration(0)
+			}
+
+			// if the train is going to leave in a long time slow down
+			if seccondsUntilDeparture > 600 {
+				sleepTime = time.Duration(int(math.Ceil(seccondsUntilDeparture/2))) * time.Minute
+			}
+			m.nextPoll = time.Now().Add(sleepTime)
 			time.Sleep(sleepTime)
 		}
 	}()
@@ -65,6 +89,8 @@ func (m *PublicTransport) Run() string {
 	departureTimeString := departureTime.In(location).Format("03:04 PM")
 	if timeUntilDeparture < 0 {
 		departureTimeString = "waiting for next train"
+		m.poll()
 	}
+
 	return fmt.Sprintf("Train in %.0fmin (%s)", timeUntilDeparture, departureTimeString)
 }
