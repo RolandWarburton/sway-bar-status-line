@@ -90,7 +90,9 @@ func (m *PublicTransport) Run() string {
 	if timeUntilDeparture < 0 {
 		departureTimeString = "waiting for next train"
 		m.poll()
+		nextDepartureSeconds := time.Until(m.NextDeparture).Seconds()
+		return fmt.Sprintf("%s %.0f", departureTimeString, nextDepartureSeconds)
+	} else {
+		return fmt.Sprintf("Train in %.0fmin (%s)", timeUntilDeparture, departureTimeString)
 	}
-
-	return fmt.Sprintf("Train in %.0fmin (%s)", timeUntilDeparture, departureTimeString)
 }
