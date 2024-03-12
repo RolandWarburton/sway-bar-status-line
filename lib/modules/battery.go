@@ -15,7 +15,7 @@ func (m *Battery) Init() {
 
 func (m *Battery) Run() string {
 	batteryCapacity, err := m.readBatteryCapacity()
-	batteryState, _ := m.readBatteryChargeState()
+	batteryState := m.readBatteryChargeState()
 	if err != nil {
 		return "0%"
 	}
@@ -39,10 +39,10 @@ func (m *Battery) readBatteryCapacity() (int, error) {
 	return batteryCapacity, nil
 }
 
-func (m *Battery) readBatteryChargeState() (string, error) {
+func (m *Battery) readBatteryChargeState() string {
 	batteryFile, err := os.Open("/sys/class/power_supply/BAT0/status")
 	if err != nil {
-		return "", err
+		return ""
 	}
 	defer batteryFile.Close()
 
@@ -50,21 +50,21 @@ func (m *Battery) readBatteryChargeState() (string, error) {
 	_, err = fmt.Fscanf(batteryFile, "%s", &batteryStatus)
 
 	if err != nil {
-		return "", err
+		return ""
 	}
 
 	if batteryStatus == "Charging" {
 		status := "^"
-		return status, nil
+		return status
 	}
 
 	if batteryStatus == "Discharging" {
 		status := ""
-		return status, nil
+		return status
 	}
 
 	// if neither charging or discharging
 	// the battery may be in an error state
 	status := "!"
-	return status, nil
+	return status
 }
