@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	ptv "github.com/rolandwarburton/ptv-status-line/pkg"

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	modules "github.com/rolandwarburton/sway-status-line/lib/modules"
@@ -28,24 +27,25 @@ func printStatus(timeModule *modules.Time, battery *modules.Battery, wifi *modul
 }
 
 func main() {
+	config := getConfig()
 	timeModule := &modules.Time{}
 	battery := &modules.Battery{}
 	wifi := &modules.Wifi{}
 	ptv := &modules.PublicTransport{}
 
-	if os.Getenv("STATUS_SHOW_TIME") != "" {
+	if config.Modules.TIME {
 		timeModule.Init()
 	}
 
-	if os.Getenv("STATUS_SHOW_BATTERY") != "" {
+	if config.Modules.BATTERY {
 		battery.Init()
 	}
 
-	if os.Getenv("STATUS_SHOW_WIFI") != "" {
+	if config.Modules.WIFI {
 		wifi.Init()
 	}
 
-	if os.Getenv("STATUS_SHOW_PTV") != "" {
+	if config.Modules.PTV {
 		ptv.Init()
 	}
 
