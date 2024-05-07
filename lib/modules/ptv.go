@@ -76,7 +76,7 @@ func GetDepartureTimingInformation(departure ptv.Departure) (*DepartureTimingInf
 
 func (m *PublicTransport) Run() string {
 	if len(m.Departures) == 0 {
-		secondsUntilNextPoll := time.Until(m.nextPoll).Seconds()
+		secondsUntilNextPoll := math.Abs(time.Until(m.nextPoll).Seconds())
 		isPollingStr := map[bool]string{true: " (polling)", false: ""}[m.isPolling]
 		return fmt.Sprintf("No data available%s (%.0f)", isPollingStr, secondsUntilNextPoll)
 	}
