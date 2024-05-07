@@ -13,7 +13,7 @@ func defaultConfig() *Config {
 	}
 
 	defaultModules := &Modules{
-		TIME:    false,
+		TIME:    true,
 		PTV:     false,
 		WIFI:    false,
 		BATTERY: false,
