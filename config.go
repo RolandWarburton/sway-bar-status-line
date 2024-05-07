@@ -6,6 +6,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 )
+
 func defaultConfig() *Config {
 	defaultSecrets := &Secrets{
 		PTVDEVID: "",
