@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	modules "github.com/rolandwarburton/sway-status-line/lib/modules"
+	config "github.com/rolandwarburton/sway-status-line/app/config"
+	modules "github.com/rolandwarburton/sway-status-line/app/modules"
 )
 
 func printStatus(timeModule *modules.Time, battery *modules.Battery, wifi *modules.Wifi, ptv *modules.PublicTransport) {
@@ -27,7 +28,7 @@ func printStatus(timeModule *modules.Time, battery *modules.Battery, wifi *modul
 }
 
 func main() {
-	config := getConfig()
+	config := config.GetConfig()
 	timeModule := &modules.Time{}
 	battery := &modules.Battery{}
 	wifi := &modules.Wifi{}

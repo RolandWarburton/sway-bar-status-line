@@ -1,4 +1,4 @@
-package main
+package types
 
 type Secrets struct {
 	PTVDEVID string `yaml:"PTV_DEVID"`

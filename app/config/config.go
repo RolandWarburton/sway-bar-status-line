@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"errors"
@@ -6,23 +6,24 @@ import (
 	"os"
 	"path"
 
+	types "github.com/rolandwarburton/sway-status-line/app/types"
 	"gopkg.in/yaml.v3"
 )
 
-func defaultConfig() *Config {
-	defaultSecrets := &Secrets{
+func defaultConfig() *types.Config {
+	defaultSecrets := &types.Secrets{
 		PTVDEVID: "",
 		PTVKEY:   "",
 	}
 
-	defaultModules := &Modules{
+	defaultModules := &types.Modules{
 		TIME:    true,
 		PTV:     false,
 		WIFI:    false,
 		BATTERY: false,
 	}
 
-	defaultConfig := &Config{
+	defaultConfig := &types.Config{
 		Secrets: *defaultSecrets,
 		Modules: *defaultModules,
 	}
@@ -53,7 +54,7 @@ func getConfigPath() (*string, error) {
 	return &configLocation, nil
 }
 
-func getConfig() *Config {
+func GetConfig() *types.Config {
 	defaultConfig := defaultConfig()
 	configPath, err := getConfigPath()
 	if err != nil {
@@ -66,7 +67,7 @@ func getConfig() *Config {
 		return defaultConfig
 	}
 
-	var config Config
+	var config types.Config
 	err = yaml.Unmarshal(f, &config)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to unmarshal config")
