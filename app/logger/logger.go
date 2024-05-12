@@ -5,10 +5,10 @@ import (
 )
 
 func Info(message string) {
-	journal.Send(message, journal.PriInfo, map[string]string{"SYSLOG_IDENTIFIER": "test"})
+	journal.Send(message, journal.PriInfo, map[string]string{"SYSLOG_IDENTIFIER": "status_bar"})
 }
 
 func Alert(message string) {
 
-	journal.Send(message, journal.PriAlert, map[string]string{"SYSLOG_IDENTIFIER": "test"})
+	journal.Send(message, journal.PriAlert, map[string]string{"SYSLOG_IDENTIFIER": "status_bar"})
 }
