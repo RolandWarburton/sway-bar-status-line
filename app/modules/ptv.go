@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	ptv "github.com/rolandwarburton/ptv-status-line/pkg"
+	ptv "github.com/rolandwarburton/ptv-go/pkg"
 	logger "github.com/rolandwarburton/sway-status-line/app/logger"
 	types "github.com/rolandwarburton/sway-status-line/app/types"
 )
