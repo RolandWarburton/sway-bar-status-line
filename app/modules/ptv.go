@@ -19,7 +19,7 @@ type PublicTransport struct {
 	isPolling     bool
 }
 
-func (m *PublicTransport) poll() {
+func (m *PublicTransport) poll(config types.ModulePtv) {
 	// avoid sending more than one request at a time
 	defer func() {
 		m.isPolling = false
@@ -30,8 +30,9 @@ func (m *PublicTransport) poll() {
 	}
 	m.isPolling = true
 	logger.Info("polling PTV")
-	departures, err := ptv.DeparturesAction("Lilydale", "Southern Cross", "Lilydale", 3, "Australia/Sydney")
+	departures, err := ptv.DeparturesAction(config.RouteName, config.StopName, config.DirectionName, 3, "Australia/Sydney")
 	if err != nil {
+		logger.Alert(fmt.Sprintf("error polling: %s", err.Error()))
 		return
 	}
 	m.Departures = departures
@@ -51,7 +52,7 @@ func (m *PublicTransport) Init(config types.ModulePtv) {
 	m.nextPoll = time.Now()
 	go func() {
 		for {
-			m.poll()
+			m.poll(config)
 			// sleep 5min
 			sleepTime := 5 * time.Minute
 			m.nextPoll = time.Now().Add(sleepTime)
