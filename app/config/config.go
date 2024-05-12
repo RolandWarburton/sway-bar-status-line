@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
 
@@ -63,20 +64,20 @@ func GetConfig() *types.Config {
 	defaultConfig := defaultConfig()
 	configPath, err := getConfigPath()
 	if err != nil {
-		logger.Alert(err.Error())
+		logger.Alert(fmt.Sprintf("failed to get the config path: %s", err.Error()))
 		return defaultConfig
 	}
 
 	f, err := os.ReadFile(*configPath)
 	if err != nil {
-		logger.Alert(err.Error())
+		logger.Alert(fmt.Sprintf("failed to read the config file: %s", err.Error()))
 		return defaultConfig
 	}
 
 	var config types.Config
 	err = yaml.Unmarshal(f, &config)
 	if err != nil {
-		logger.Alert(err.Error())
+		logger.Alert(fmt.Sprintf("failed to parse the config file: %s", err.Error()))
 		return defaultConfig
 	}
 
