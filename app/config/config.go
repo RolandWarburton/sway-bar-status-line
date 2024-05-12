@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 
+	logger "github.com/rolandwarburton/sway-status-line/app/logger"
 	types "github.com/rolandwarburton/sway-status-line/app/types"
 	"gopkg.in/yaml.v3"
 )
@@ -17,10 +18,15 @@ func defaultConfig() *types.Config {
 	}
 
 	defaultModules := &types.Modules{
-		TIME:    true,
-		PTV:     false,
-		WIFI:    false,
-		BATTERY: false,
+		TIME: types.ModuleTime{Enabled: true},
+		PTV: types.ModulePtv{
+			Enabled:       false,
+			RouteName:     "Belgrave",
+			StopName:      "Southern Cross",
+			DirectionName: "Belgrave",
+		},
+		WIFI:    types.ModuleWifi{Enabled: false},
+		BATTERY: types.ModuleBattery{Enabled: false},
 	}
 
 	defaultConfig := &types.Config{
@@ -58,19 +64,20 @@ func GetConfig() *types.Config {
 	defaultConfig := defaultConfig()
 	configPath, err := getConfigPath()
 	if err != nil {
+		logger.Alert(err.Error())
 		return defaultConfig
 	}
 
 	f, err := os.ReadFile(*configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to read config")
+		logger.Alert(err.Error())
 		return defaultConfig
 	}
 
 	var config types.Config
 	err = yaml.Unmarshal(f, &config)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to unmarshal config")
+		logger.Alert(err.Error())
 		return defaultConfig
 	}
 

@@ -34,20 +34,20 @@ func main() {
 	wifi := &modules.Wifi{}
 	ptv := &modules.PublicTransport{}
 
-	if config.Modules.TIME {
+	if config.Modules.TIME.Enabled {
 		timeModule.Init()
 	}
 
-	if config.Modules.BATTERY {
+	if config.Modules.BATTERY.Enabled {
 		battery.Init()
 	}
 
-	if config.Modules.WIFI {
+	if config.Modules.WIFI.Enabled {
 		wifi.Init()
 	}
 
-	if config.Modules.PTV {
-		ptv.Init()
+	if config.Modules.PTV.Enabled {
+		ptv.Init(config.Modules.PTV)
 	}
 
 	go func() {

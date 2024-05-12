@@ -6,6 +6,8 @@ import (
 	"time"
 
 	ptv "github.com/rolandwarburton/ptv-status-line/pkg"
+	logger "github.com/rolandwarburton/sway-status-line/app/logger"
+	types "github.com/rolandwarburton/sway-status-line/app/types"
 )
 
 type PublicTransport struct {
@@ -21,11 +23,13 @@ func (m *PublicTransport) poll() {
 	// avoid sending more than one request at a time
 	defer func() {
 		m.isPolling = false
+		logger.Info(fmt.Sprintf("finished polling PTV (%d results)", len(m.Departures)))
 	}()
 	if m.isPolling {
 		return
 	}
 	m.isPolling = true
+	logger.Info("polling PTV")
 	departures, err := ptv.DeparturesAction("Lilydale", "Southern Cross", "Lilydale", 3, "Australia/Sydney")
 	if err != nil {
 		return
@@ -36,7 +40,13 @@ func (m *PublicTransport) poll() {
 	m.isPolling = false
 }
 
-func (m *PublicTransport) Init() {
+func (m *PublicTransport) Init(config types.ModulePtv) {
+	logger.Info(
+		fmt.Sprintf(
+			"set train route to %s going towards %s",
+			config.RouteName, config.DirectionName,
+		),
+	)
 	m.Enabled = true
 	m.nextPoll = time.Now()
 	go func() {
