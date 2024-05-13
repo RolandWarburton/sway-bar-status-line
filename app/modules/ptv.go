@@ -48,6 +48,7 @@ func (m *PublicTransport) Init(config types.ModulePtv) {
 			config.RouteName, config.DirectionName,
 		),
 	)
+	ptv.SetPTVSecrets(config.PTVKEY, config.PTVDEVID)
 	m.Enabled = true
 	m.nextPoll = time.Now()
 	go func() {

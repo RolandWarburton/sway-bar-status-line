@@ -1,10 +1,9 @@
-secrets:
-  PTV_DEVID: NOT PROVIDED
-  PTV_KEY: NOT PROVIDED
 modules:
   TIME:
     enabled: true
   PTV:
+    PTV_DEVID: NOT PROVIDED
+    PTV_KEY: NOT PROVIDED
     enabled: true
     routeName: 'Lillydale'
     stopName: 'Southern Cross'

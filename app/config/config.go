@@ -12,14 +12,11 @@ import (
 )
 
 func defaultConfig() *types.Config {
-	defaultSecrets := &types.Secrets{
-		PTVDEVID: "",
-		PTVKEY:   "",
-	}
-
 	defaultModules := &types.Modules{
 		TIME: types.ModuleTime{Enabled: true},
 		PTV: types.ModulePtv{
+			PTVDEVID:      "",
+			PTVKEY:        "",
 			Enabled:       false,
 			RouteName:     "Belgrave",
 			StopName:      "Southern Cross",
@@ -30,7 +27,6 @@ func defaultConfig() *types.Config {
 	}
 
 	defaultConfig := &types.Config{
-		Secrets: *defaultSecrets,
 		Modules: *defaultModules,
 	}
 

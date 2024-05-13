@@ -1,10 +1,5 @@
 package types
 
-type Secrets struct {
-	PTVDEVID string `yaml:"PTV_DEVID"`
-	PTVKEY   string `yaml:"PTV_KEY"`
-}
-
 type Modules struct {
 	TIME    ModuleTime    `yaml:"TIME"`
 	PTV     ModulePtv     `yaml:"PTV"`
@@ -17,6 +12,8 @@ type ModuleTime struct {
 }
 
 type ModulePtv struct {
+	PTVDEVID      string `yaml:"PTV_DEVID"`
+	PTVKEY        string `yaml:"PTV_KEY"`
 	Enabled       bool   `yaml:"enabled"`
 	RouteName     string `yaml:"routeName"`
 	StopName      string `yaml:"stopName"`
@@ -32,6 +29,5 @@ type ModuleBattery struct {
 }
 
 type Config struct {
-	Secrets Secrets `yaml:"secrets"`
 	Modules Modules `yaml:"modules"`
 }
