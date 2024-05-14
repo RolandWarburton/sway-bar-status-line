@@ -95,7 +95,9 @@ func (m *PublicTransport) Run() string {
 	}
 
 	var result string
-	for i, departure := range m.Departures {
+	i := 0
+	for result == "" && i <= len(m.Departures) {
+		departure := m.Departures[i]
 		info, err := GetDepartureTimingInformation(departure)
 		if err != nil {
 			result = "error"
@@ -114,6 +116,8 @@ func (m *PublicTransport) Run() string {
 			departureTimeString,
 			isPollingStr,
 		)
+		i++
 	}
+
 	return result
 }
