@@ -104,7 +104,7 @@ func (m *PublicTransport) Run() string {
 			break
 		}
 
-		if info.MinutesUntilDeparture < 0 && i == len(m.Departures)-1 {
+		if info.MinutesUntilDeparture < 1 && i == len(m.Departures)-1 {
 			result = "No data available"
 			break
 		}
