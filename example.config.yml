@@ -2,12 +2,12 @@ modules:
   TIME:
     enabled: true
   PTV:
-    PTV_DEVID: NOT PROVIDED
-    PTV_KEY: NOT PROVIDED
     enabled: true
     routeName: 'Lillydale'
     stopName: 'Southern Cross'
     directionName: 'Lillydale'
+    ptv_devid: NOT PROVIDED
+    ptv_key: NOT PROVIDED
   WIFI:
     enabled: true
   BATTERY:
