@@ -11,28 +11,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func defaultConfig() *types.Config {
-	defaultModules := &types.Modules{
-		TIME: types.ModuleTime{Enabled: true},
-		PTV: types.ModulePtv{
-			PTVDEVID:      "",
-			PTVKEY:        "",
-			Enabled:       false,
-			RouteName:     "Belgrave",
-			StopName:      "Southern Cross",
-			DirectionName: "Belgrave",
-		},
-		WIFI:    types.ModuleWifi{Enabled: false},
-		BATTERY: types.ModuleBattery{Enabled: false},
-	}
-
-	defaultConfig := &types.Config{
-		Modules: *defaultModules,
-	}
-
-	return defaultConfig
-}
-
 func getConfigPath() (*string, error) {
 	var home, err = os.UserHomeDir()
 	if err != nil {
@@ -56,26 +34,25 @@ func getConfigPath() (*string, error) {
 	return &configLocation, nil
 }
 
-func GetConfig() *types.Config {
-	defaultConfig := defaultConfig()
+func GetConfig() (*types.Config, error) {
 	configPath, err := getConfigPath()
 	if err != nil {
 		logger.Alert(fmt.Sprintf("failed to get the config path: %s", err.Error()))
-		return defaultConfig
+		return nil, err
 	}
 
 	f, err := os.ReadFile(*configPath)
 	if err != nil {
 		logger.Alert(fmt.Sprintf("failed to read the config file: %s", err.Error()))
-		return defaultConfig
+		return nil, err
 	}
 
 	var config types.Config
 	err = yaml.Unmarshal(f, &config)
 	if err != nil {
 		logger.Alert(fmt.Sprintf("failed to parse the config file: %s", err.Error()))
-		return defaultConfig
+		return nil, err
 	}
 
-	return &config
+	return &config, nil
 }

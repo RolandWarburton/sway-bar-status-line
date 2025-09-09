@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	config "github.com/rolandwarburton/sway-status-line/app/config"
@@ -28,7 +29,11 @@ func printStatus(timeModule *modules.Time, battery *modules.Battery, wifi *modul
 }
 
 func main() {
-	config := config.GetConfig()
+	config, err := config.GetConfig()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	timeModule := &modules.Time{}
 	battery := &modules.Battery{}
 	wifi := &modules.Wifi{}
