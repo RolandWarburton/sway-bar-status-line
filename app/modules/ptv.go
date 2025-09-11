@@ -89,6 +89,10 @@ func (m *PublicTransport) Run() string {
 		return "Loading..."
 	}
 
+	if time.Now().Compare(m.NextDeparture) == 1 {
+		return "loading..."
+	}
+
 	var result string
 	departure := m.Departures[0]
 	info, err := GetDepartureTimingInformation(departure)
