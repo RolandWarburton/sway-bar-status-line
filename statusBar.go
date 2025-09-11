@@ -9,7 +9,12 @@ import (
 	modules "github.com/rolandwarburton/sway-status-line/app/modules"
 )
 
-func printStatus(timeModule *modules.Time, battery *modules.Battery, wifi *modules.Wifi, ptv *modules.PublicTransport) {
+func printStatus(
+	timeModule *modules.Time,
+	battery *modules.Battery,
+	wifi *modules.Wifi,
+	ptv *modules.PublicTransport,
+) {
 	var result string
 
 	if timeModule.Enabled {
