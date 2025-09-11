@@ -12,8 +12,8 @@ type ModuleTime struct {
 }
 
 type ModulePtv struct {
-	PTVDEVID      string `yaml:"PTV_DEVID"`
-	PTVKEY        string `yaml:"PTV_KEY"`
+	PTVDEVID      string `yaml:"ptv_devid"`
+	PTVKEY        string `yaml:"ptv_key"`
 	Enabled       bool   `yaml:"enabled"`
 	RouteName     string `yaml:"routeName"`
 	StopName      string `yaml:"stopName"`
