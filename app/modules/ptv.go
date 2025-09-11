@@ -2,7 +2,6 @@ package modules
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	ptv "github.com/rolandwarburton/ptv-go/pkg"
@@ -14,31 +13,24 @@ type PublicTransport struct {
 	Module
 	Departures    []ptv.Departure
 	NextDeparture time.Time
-	LastPoll      time.Time
-	nextPoll      time.Time
-	isPolling     bool
 }
 
 func (m *PublicTransport) poll(config types.ModulePtv) {
 	// avoid sending more than one request at a time
-	defer func() {
-		m.isPolling = false
-		logger.Info(fmt.Sprintf("finished polling PTV (%d results)", len(m.Departures)))
-	}()
-	if m.isPolling {
-		return
-	}
-	m.isPolling = true
 	logger.Info("polling PTV")
-	departures, err := ptv.DeparturesAction(config.RouteName, config.StopName, config.DirectionName, 3, "Australia/Sydney")
+	departures, err := ptv.DeparturesAction(config.RouteName, config.StopName, config.DirectionName, 1, "Australia/Sydney")
 	if err != nil {
 		logger.Alert(fmt.Sprintf("error polling: %s", err.Error()))
+		logger.Info(err.Error())
 		return
 	}
 	m.Departures = departures
-	m.LastPoll = time.Now()
-	m.LastPoll = time.Now()
-	m.isPolling = false
+	nextDeparture, err := GetDepartureTimingInformation(departures[0])
+	if err != nil {
+		logger.Info(err.Error())
+		return
+	}
+	m.NextDeparture = nextDeparture.DepartureTime
 }
 
 func (m *PublicTransport) Init(config types.ModulePtv) {
@@ -50,13 +42,18 @@ func (m *PublicTransport) Init(config types.ModulePtv) {
 	)
 	ptv.SetPTVSecrets(config.PTVKEY, config.PTVDEVID)
 	m.Enabled = true
-	m.nextPoll = time.Now()
 	go func() {
 		for {
-			m.poll(config)
+			if m.NextDeparture.IsZero() {
+				m.poll(config)
+			}
+			// if the next departure is in the past
+			if time.Now().Compare(m.NextDeparture) == 1 {
+				m.poll(config)
+			}
+
 			// sleep 5min
-			sleepTime := 5 * time.Minute
-			m.nextPoll = time.Now().Add(sleepTime)
+			sleepTime := 4 * time.Second
 			time.Sleep(sleepTime)
 		}
 	}()
@@ -89,35 +86,22 @@ func GetDepartureTimingInformation(departure ptv.Departure) (*DepartureTimingInf
 
 func (m *PublicTransport) Run() string {
 	if len(m.Departures) == 0 {
-		secondsUntilNextPoll := math.Abs(time.Until(m.nextPoll).Seconds())
-		isPollingStr := map[bool]string{true: " (polling)", false: ""}[m.isPolling]
-		return fmt.Sprintf("No data available%s (%.0f)", isPollingStr, secondsUntilNextPoll)
+		return "Loading..."
 	}
 
 	var result string
-	i := 0
-	for result == "" && i <= len(m.Departures) {
-		departure := m.Departures[i]
-		info, err := GetDepartureTimingInformation(departure)
-		if err != nil {
-			result = "error"
-			break
-		}
-
-		if info.MinutesUntilDeparture < 1 && i == len(m.Departures)-1 {
-			result = "No data available"
-			break
-		}
-		departureTimeString := info.DepartureTime.In(info.Location).Format("03:04 PM")
-		isPollingStr := map[bool]string{true: " (polling)", false: ""}[m.isPolling]
-		result = fmt.Sprintf(
-			"Train in %.0fmin (%s)%s",
-			info.MinutesUntilDeparture,
-			departureTimeString,
-			isPollingStr,
-		)
-		i++
+	departure := m.Departures[0]
+	info, err := GetDepartureTimingInformation(departure)
+	if err != nil {
+		result = "error"
 	}
+
+	departureTimeString := info.DepartureTime.In(info.Location).Format("03:04 PM")
+	result = fmt.Sprintf(
+		"Train in %.0fmin (%s)",
+		info.MinutesUntilDeparture,
+		departureTimeString,
+	)
 
 	return result
 }
