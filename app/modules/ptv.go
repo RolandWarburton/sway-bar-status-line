@@ -13,6 +13,7 @@ type PublicTransport struct {
 	Module
 	Departures    []ptv.Departure
 	NextDeparture time.Time
+	Polled        bool
 }
 
 func (m *PublicTransport) poll(config types.ModulePtv) {
@@ -25,6 +26,12 @@ func (m *PublicTransport) poll(config types.ModulePtv) {
 		return
 	}
 	m.Departures = departures
+	m.Polled = true
+	if len(departures) == 0 {
+		logger.Info("no departures returned")
+		m.NextDeparture = time.Time{}
+		return
+	}
 	nextDeparture, err := GetDepartureTimingInformation(departures[0])
 	if err != nil {
 		logger.Info(err.Error())
@@ -85,27 +92,28 @@ func GetDepartureTimingInformation(departure ptv.Departure) (*DepartureTimingInf
 }
 
 func (m *PublicTransport) Run() string {
-	if len(m.Departures) == 0 {
+	if !m.Polled {
 		return "Loading..."
+	}
+
+	if len(m.Departures) == 0 {
+		return "no departures"
 	}
 
 	if time.Now().Compare(m.NextDeparture) == 1 {
 		return "loading..."
 	}
 
-	var result string
 	departure := m.Departures[0]
 	info, err := GetDepartureTimingInformation(departure)
 	if err != nil {
-		result = "error"
+		return "error"
 	}
 
 	departureTimeString := info.DepartureTime.In(info.Location).Format("03:04 PM")
-	result = fmt.Sprintf(
+	return fmt.Sprintf(
 		"Train in %.0fmin (%s)",
 		info.MinutesUntilDeparture,
 		departureTimeString,
 	)
-
-	return result
 }
