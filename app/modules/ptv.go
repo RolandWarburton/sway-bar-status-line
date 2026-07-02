@@ -54,7 +54,11 @@ func (m *PublicTransport) Init(config types.ModulePtv) {
 			config.RouteName, config.DirectionName,
 		),
 	)
-	ptv.SetPTVSecrets(config.PTVKEY, config.PTVDEVID)
+	// Only override the library's env-derived secrets (PTV_KEY/PTV_DEVID) when
+	// the config actually supplies both, so a blank config doesn't clobber them.
+	if config.PTVKEY != "" && config.PTVDEVID != "" {
+		ptv.SetPTVSecrets(config.PTVKEY, config.PTVDEVID)
+	}
 	m.Enabled = true
 	go func() {
 		for {
