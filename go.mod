@@ -1,6 +1,6 @@
 module github.com/rolandwarburton/sway-status-line
 
-go 1.21.4
+go 1.24.2
 
 require (
 	github.com/coreos/go-systemd/v22 v22.5.0
