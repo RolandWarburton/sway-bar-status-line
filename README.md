@@ -15,3 +15,12 @@ Ensure you have the following authentication keys defined.
 export PTV_DEVID=MY_DEV_ID
 export PTV_KEY=MY_DEV_KEY
 ```
+
+## Releasing
+
+Pushing a tag triggers CI to build and publish the release.
+
+```bash
+git tag -a v1.3.0 -m "<changes made>"
+git push origin v1.3.0
+```
