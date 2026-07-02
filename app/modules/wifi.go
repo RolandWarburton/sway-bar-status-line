@@ -1,100 +1,68 @@
 package modules
 
 import (
-	"errors"
 	"fmt"
-	"os/exec"
+	"os"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
 type Wifi struct {
 	Module
-	networkState NetworkState
-}
-
-type NetworkState struct {
-	Connected bool   `json:"state"`
-	Device    string `json:"device"`
+	mu     sync.RWMutex
+	device string // "" when no wireless interface is up
+	polled bool
 }
 
 func (m *Wifi) Init() {
 	m.Enabled = true
-	m.networkState.Device = "..."
-	go m.PollActiveWifiDevice(10 * time.Second)
+	go m.poll(10 * time.Second)
+}
+
+func (m *Wifi) poll(interval time.Duration) {
+	for {
+		device := activeWifiDevice()
+		m.mu.Lock()
+		m.device, m.polled = device, true
+		m.mu.Unlock()
+		time.Sleep(interval)
+	}
 }
 
 func (m *Wifi) Run() string {
-	var wifi string
-	m.GetActiveWifiConnection()
-	if m.networkState.Device != "" {
-		wifi = fmt.Sprintf("%s UP", m.networkState.Device)
-	} else {
-		wifi = "WIFI DOWN"
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if !m.polled {
+		return "Loading..."
 	}
-	return wifi
+	if m.device != "" {
+		return fmt.Sprintf("%s UP", m.device)
+	}
+	return "WIFI DOWN"
 }
 
-func (m *Wifi) GetActiveWifiConnection() error {
-	connections, err := GetWifiDevices()
-	found := false
+// activeWifiDevice returns the name of the first up wireless interface, or "".
+// A wireless interface is identified by a "wireless" directory under its
+// sysfs entry, and is considered up when its operstate reads "up".
+func activeWifiDevice() string {
+	const base = "/sys/class/net"
+	entries, err := os.ReadDir(base)
 	if err != nil {
-		return err
+		return ""
 	}
-	for i := 0; i < len(connections); i += 1 {
-		if connections[i].Connected {
-			network := connections[i]
-			m.networkState.Connected = network.Connected
-			m.networkState.Device = network.Device
-			found = true
+	for _, e := range entries {
+		if _, err := os.Stat(filepath.Join(base, e.Name(), "wireless")); err != nil {
+			continue // not a wireless interface
 		}
-	}
-	if found {
-		return nil
-	} else {
-		return errors.New("no connected network was found")
-	}
-}
-
-func GetWifiDevices() ([]NetworkState, error) {
-	// get the devices
-	cmd := exec.Command("nmcli", "-f", "GENERAL.state,GENERAL.device", "device", "show")
-	output, err := cmd.Output()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return nil, err
-	}
-
-	lines := strings.Split(string(output), "\n")
-	var networks []NetworkState
-	for i := 0; i < len(lines)-1; i += 2 {
-		var network NetworkState
-		stateLine := lines[i]
-		deviceLine := lines[i+1]
-		if len(stateLine) == 0 || len(deviceLine) == 0 {
+		state, err := os.ReadFile(filepath.Join(base, e.Name(), "operstate"))
+		if err != nil {
 			continue
 		}
-
-		// STATE
-		if strings.HasPrefix(stateLine, "GENERAL.STATE:") {
-			state := strings.TrimSpace(strings.SplitN(stateLine, "GENERAL.STATE:", 2)[1])
-			network.Connected = strings.Contains(state, "(connected)")
+		if strings.TrimSpace(string(state)) == "up" {
+			return e.Name()
 		}
-
-		// DEVICE
-		if strings.HasPrefix(deviceLine, "GENERAL.DEVICE:") {
-			device := strings.TrimSpace(strings.SplitN(deviceLine, "GENERAL.DEVICE:", 2)[1])
-			network.Device = device
-		}
-		networks = append(networks, network)
 	}
-
-	return networks, nil
-}
-
-func (m *Wifi) PollActiveWifiDevice(timeout time.Duration) {
-	for {
-		m.GetActiveWifiConnection()
-		time.Sleep(timeout)
-	}
+	return ""
 }
