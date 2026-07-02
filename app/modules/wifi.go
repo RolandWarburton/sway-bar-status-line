@@ -76,14 +76,14 @@ func GetWifiDevices() ([]NetworkState, error) {
 		}
 
 		// STATE
-		if stateLine[8:11] == "STA" {
-			state := strings.TrimSpace(strings.Split(stateLine, "GENERAL.STATE:")[1])
+		if strings.HasPrefix(stateLine, "GENERAL.STATE:") {
+			state := strings.TrimSpace(strings.SplitN(stateLine, "GENERAL.STATE:", 2)[1])
 			network.Connected = strings.Contains(state, "(connected)")
 		}
 
 		// DEVICE
-		if deviceLine[8:11] == "DEV" {
-			device := strings.TrimSpace(strings.Split(deviceLine, "GENERAL.DEVICE:")[1])
+		if strings.HasPrefix(deviceLine, "GENERAL.DEVICE:") {
+			device := strings.TrimSpace(strings.SplitN(deviceLine, "GENERAL.DEVICE:", 2)[1])
 			network.Device = device
 		}
 		networks = append(networks, network)
