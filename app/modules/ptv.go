@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	ptv "github.com/rolandwarburton/ptv-go/pkg"
@@ -11,6 +12,7 @@ import (
 
 type PublicTransport struct {
 	Module
+	mu            sync.RWMutex
 	Departures    []ptv.Departure
 	NextDeparture time.Time
 	Polled        bool
@@ -25,19 +27,24 @@ func (m *PublicTransport) poll(config types.ModulePtv) {
 		logger.Info(err.Error())
 		return
 	}
-	m.Departures = departures
-	m.Polled = true
-	if len(departures) == 0 {
+
+	var nextDeparture time.Time
+	if len(departures) > 0 {
+		info, err := GetDepartureTimingInformation(departures[0])
+		if err != nil {
+			logger.Info(err.Error())
+			return
+		}
+		nextDeparture = info.DepartureTime
+	} else {
 		logger.Info("no departures returned")
-		m.NextDeparture = time.Time{}
-		return
 	}
-	nextDeparture, err := GetDepartureTimingInformation(departures[0])
-	if err != nil {
-		logger.Info(err.Error())
-		return
-	}
-	m.NextDeparture = nextDeparture.DepartureTime
+
+	m.mu.Lock()
+	m.Departures = departures
+	m.NextDeparture = nextDeparture
+	m.Polled = true
+	m.mu.Unlock()
 }
 
 func (m *PublicTransport) Init(config types.ModulePtv) {
@@ -51,17 +58,16 @@ func (m *PublicTransport) Init(config types.ModulePtv) {
 	m.Enabled = true
 	go func() {
 		for {
-			if m.NextDeparture.IsZero() {
-				m.poll(config)
-			}
-			// if the next departure is in the past
-			if time.Now().Compare(m.NextDeparture) == 1 {
+			m.mu.RLock()
+			next := m.NextDeparture
+			m.mu.RUnlock()
+
+			// poll if we have no departure yet or the cached one is in the past
+			if next.IsZero() || time.Now().After(next) {
 				m.poll(config)
 			}
 
-			// sleep 5min
-			sleepTime := 4 * time.Second
-			time.Sleep(sleepTime)
+			time.Sleep(4 * time.Second)
 		}
 	}()
 }
@@ -92,19 +98,28 @@ func GetDepartureTimingInformation(departure ptv.Departure) (*DepartureTimingInf
 }
 
 func (m *PublicTransport) Run() string {
-	if !m.Polled {
+	m.mu.RLock()
+	polled := m.Polled
+	next := m.NextDeparture
+	haveDeparture := len(m.Departures) > 0
+	var departure ptv.Departure
+	if haveDeparture {
+		departure = m.Departures[0]
+	}
+	m.mu.RUnlock()
+
+	if !polled {
 		return "Loading..."
 	}
 
-	if len(m.Departures) == 0 {
+	if !haveDeparture {
 		return "no departures"
 	}
 
-	if time.Now().Compare(m.NextDeparture) == 1 {
+	if time.Now().After(next) {
 		return "loading..."
 	}
 
-	departure := m.Departures[0]
 	info, err := GetDepartureTimingInformation(departure)
 	if err != nil {
 		return "error"
