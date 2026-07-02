@@ -9,6 +9,9 @@ import (
 	modules "github.com/rolandwarburton/sway-status-line/app/modules"
 )
 
+// version is set at build time via -ldflags "-X main.version=...".
+var version = "dev"
+
 func printStatus(
 	timeModule *modules.Time,
 	battery *modules.Battery,
@@ -34,6 +37,11 @@ func printStatus(
 }
 
 func main() {
+	if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v") {
+		fmt.Println(version)
+		return
+	}
+
 	config, err := config.GetConfig()
 	if err != nil {
 		fmt.Println(err)

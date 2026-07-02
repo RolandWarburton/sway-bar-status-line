@@ -22,6 +22,8 @@ jobs:
           go-version-file: go.mod
 
       - name: Build
+        env:
+          VERSION: ${{ github.ref_name }}
         run: ./build.sh
 
       - name: Create release and upload binary
@@ -33,10 +35,9 @@ jobs:
           case "$GITHUB_REF_NAME" in
             *-*) prerelease="--prerelease" ;;
           esac
-          gh release create "$GITHUB_REF_NAME" \
+          gh release create "$GITHUB_REF_NAME" ./statusBar \
             --repo "$GITHUB_REPOSITORY" \
             --title "Release $GITHUB_REF_NAME" \
-            --notes "Release $GITHUB_REF_NAME" \
+            --generate-notes \
             --target "$GITHUB_SHA" \
             $prerelease
-          gh release upload "$GITHUB_REF_NAME" ./statusBar
