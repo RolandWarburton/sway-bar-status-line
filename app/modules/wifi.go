@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,10 +10,15 @@ import (
 	"time"
 )
 
+var probeTargets = []string{"1.1.1.1:53", "8.8.8.8:53"}
+
+const probeTimeout = 3 * time.Second
+
 type Wifi struct {
 	Module
 	mu     sync.RWMutex
-	device string // "" when no wireless interface is up
+	device string // empty string when no wireless interface is up
+	online bool   // associated interface can actually reach the internet
 	polled bool
 }
 
@@ -24,12 +30,28 @@ func (m *Wifi) Init() {
 func (m *Wifi) poll(interval time.Duration) {
 	for {
 		device := activeWifiDevice()
+		online := device != "" && hasConnectivity()
+
 		m.mu.Lock()
-		m.device, m.polled = device, true
+		m.device, m.online, m.polled = device, online, true
 		m.mu.Unlock()
 		time.Sleep(interval)
 	}
 }
+
+// Run reports one of four states:
+//
+//	┌──────────────────────────────────┬───────────────┐
+//	│            Condition             │    Output     │
+//	├──────────────────────────────────┼───────────────┤
+//	│ Before first poll                │ Loading...    │
+//	├──────────────────────────────────┼───────────────┤
+//	│ No wireless iface up             │ WIFI DOWN     │
+//	├──────────────────────────────────┼───────────────┤
+//	│ Associated, no route off-network │ wlp4s0 NO NET │
+//	├──────────────────────────────────┼───────────────┤
+//	│ Associated + reachable           │ wlp4s0 UP     │
+//	└──────────────────────────────────┴───────────────┘
 
 func (m *Wifi) Run() string {
 	m.mu.RLock()
@@ -37,10 +59,26 @@ func (m *Wifi) Run() string {
 	if !m.polled {
 		return "Loading..."
 	}
-	if m.device != "" {
-		return fmt.Sprintf("%s UP", m.device)
+	if m.device == "" {
+		return "WIFI DOWN"
 	}
-	return "WIFI DOWN"
+	if !m.online {
+		return fmt.Sprintf("%s NO NET", m.device)
+	}
+	return fmt.Sprintf("%s UP", m.device)
+}
+
+// returns true when TCP handshake can complete against any probe target
+func hasConnectivity() bool {
+	for _, target := range probeTargets {
+		conn, err := net.DialTimeout("tcp4", target, probeTimeout)
+		if err != nil {
+			continue
+		}
+		conn.Close()
+		return true
+	}
+	return false
 }
 
 // activeWifiDevice returns the name of the first up wireless interface, or "".
