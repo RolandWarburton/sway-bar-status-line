@@ -6,6 +6,7 @@ type Modules struct {
 	WIFI    ModuleWifi    `yaml:"WIFI"`
 	BATTERY ModuleBattery `yaml:"BATTERY"`
 	CPU     ModuleCpu     `yaml:"CPU"`
+	MEMORY  ModuleMemory  `yaml:"MEMORY"`
 }
 
 type ModuleTime struct {
@@ -30,6 +31,10 @@ type ModuleBattery struct {
 }
 
 type ModuleCpu struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type ModuleMemory struct {
 	Enabled bool `yaml:"enabled"`
 }
 type Config struct {

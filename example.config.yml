@@ -15,3 +15,5 @@ modules:
     enabled: true
   CPU:
     enabled: true
+  MEMORY:
+    enabled: true
