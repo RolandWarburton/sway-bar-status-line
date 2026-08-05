@@ -17,3 +17,10 @@ modules:
     enabled: true
   MEMORY:
     enabled: true
+  DISK:
+    enabled: true
+    partitions:
+      - path: '/'
+        label: '/'
+      - path: '/home'
+        label: 'home'
