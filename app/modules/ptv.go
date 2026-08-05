@@ -18,10 +18,12 @@ type PublicTransport struct {
 	Polled        bool
 }
 
+const timezone = "Australia/Melbourne"
+
 func (m *PublicTransport) poll(config types.ModulePtv) {
 	// avoid sending more than one request at a time
 	logger.Info("polling PTV")
-	departures, err := ptv.DeparturesAction(config.RouteName, config.StopName, config.DirectionName, 1, "Australia/Sydney")
+	departures, err := ptv.DeparturesAction(config.RouteName, config.StopName, config.DirectionName, 1, timezone)
 	if err != nil {
 		logger.Alert(fmt.Sprintf("error polling: %s", err.Error()))
 		logger.Info(err.Error())
@@ -76,6 +78,16 @@ func (m *PublicTransport) Init(config types.ModulePtv) {
 	}()
 }
 
+// Cache the location/timezone
+var location = func() *time.Location {
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		logger.Alert(fmt.Sprintf("could not load %s, falling back to UTC: %s", timezone, err.Error()))
+		return time.UTC
+	}
+	return loc
+}()
+
 type DepartureTimingInformation struct {
 	DepartureTime         time.Time
 	MinutesUntilDeparture float64
@@ -83,13 +95,8 @@ type DepartureTimingInformation struct {
 }
 
 func GetDepartureTimingInformation(departure ptv.Departure) (*DepartureTimingInformation, error) {
-	var location *time.Location
 	layout := "02-01-2006 03:04 PM"
 	departureTime, err := time.Parse(layout, departure.ScheduledDepartureUTC)
-	if err != nil {
-		return nil, err
-	}
-	location, err = time.LoadLocation("Australia/Sydney")
 	if err != nil {
 		return nil, err
 	}
