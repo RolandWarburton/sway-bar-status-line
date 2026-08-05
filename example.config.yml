@@ -13,3 +13,5 @@ modules:
     enabled: true
   BATTERY:
     enabled: true
+  CPU:
+    enabled: true

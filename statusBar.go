@@ -18,10 +18,14 @@ func printStatus(
 	battery *modules.Battery,
 	wifi *modules.Wifi,
 	ptv *modules.PublicTransport,
+	cpu *modules.Cpu,
 ) {
 
 	var parts []string
 
+	if cpu.Enabled {
+		parts = append(parts, cpu.Run())
+	}
 	if ptv.Enabled {
 		parts = append(parts, ptv.Run())
 	}
@@ -53,6 +57,7 @@ func main() {
 	battery := &modules.Battery{}
 	wifi := &modules.Wifi{}
 	ptv := &modules.PublicTransport{}
+	cpu := &modules.Cpu{}
 
 	if config.Modules.TIME.Enabled {
 		timeModule.Init()
@@ -70,9 +75,12 @@ func main() {
 		ptv.Init(config.Modules.PTV)
 	}
 
+	if config.Modules.CPU.Enabled {
+		cpu.Init()
+	}
 	go func() {
 		for {
-			printStatus(timeModule, battery, wifi, ptv)
+			printStatus(timeModule, battery, wifi, ptv, cpu)
 			// Wait for 1 second before printing the next status
 			time.Sleep(1 * time.Second)
 		}

@@ -5,6 +5,7 @@ type Modules struct {
 	PTV     ModulePtv     `yaml:"PTV"`
 	WIFI    ModuleWifi    `yaml:"WIFI"`
 	BATTERY ModuleBattery `yaml:"BATTERY"`
+	CPU     ModuleCpu     `yaml:"CPU"`
 }
 
 type ModuleTime struct {
@@ -28,6 +29,9 @@ type ModuleBattery struct {
 	Enabled bool
 }
 
+type ModuleCpu struct {
+	Enabled bool `yaml:"enabled"`
+}
 type Config struct {
 	Modules Modules `yaml:"modules"`
 }
