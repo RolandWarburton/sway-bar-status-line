@@ -121,7 +121,7 @@ func (m *PublicTransport) Run() string {
 	}
 
 	if time.Now().After(next) {
-		return "loading..."
+		return "Loading..."
 	}
 
 	info, err := GetDepartureTimingInformation(departure)
