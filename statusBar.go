@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	config "github.com/rolandwarburton/sway-status-line/app/config"
@@ -18,22 +19,23 @@ func printStatus(
 	wifi *modules.Wifi,
 	ptv *modules.PublicTransport,
 ) {
-	var result string
 
-	if timeModule.Enabled {
-		result = timeModule.Run() + result
-	}
-	if battery.Enabled {
-		result = battery.Run() + " | " + result
+	var parts []string
+
+	if ptv.Enabled {
+		parts = append(parts, ptv.Run())
 	}
 	if wifi.Enabled {
-		result = wifi.Run() + " | " + result
+		parts = append(parts, wifi.Run())
 	}
-	if ptv.Enabled {
-		result = ptv.Run() + " | " + result
+	if battery.Enabled {
+		parts = append(parts, battery.Run())
+	}
+	if timeModule.Enabled {
+		parts = append(parts, timeModule.Run())
 	}
 
-	fmt.Println(result)
+	fmt.Println(strings.Join(parts, " | "))
 }
 
 func main() {
