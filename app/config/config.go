@@ -14,7 +14,7 @@ import (
 func getConfigPath() (*string, error) {
 	var home, err = os.UserHomeDir()
 	if err != nil {
-		// fall back on the default config
+		// fatal if $HOME is not present to fall back on
 		return nil, errors.New("failed to get users home")
 	}
 
@@ -27,7 +27,7 @@ func getConfigPath() (*string, error) {
 	}
 
 	if _, err := os.Stat(configLocation); err != nil {
-		// fall back on the default config
+		// fatal if the specified config does not exist
 		return nil, errors.New("SWAYBAR_CONFIG_LOCATION does not exist")
 	}
 
