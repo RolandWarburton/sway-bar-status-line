@@ -21,6 +21,12 @@ type PublicTransport struct {
 const timezone = "Australia/Melbourne"
 
 func (m *PublicTransport) poll(config types.ModulePtv) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Alert(fmt.Sprintf("panic while polling PTV: %v", r))
+		}
+	}()
+
 	// avoid sending more than one request at a time
 	logger.Info("polling PTV")
 	departures, err := ptv.DeparturesAction(config.RouteName, config.StopName, config.DirectionName, 1, timezone)
