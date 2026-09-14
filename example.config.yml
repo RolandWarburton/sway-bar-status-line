@@ -3,9 +3,9 @@ modules:
     enabled: true
   PTV:
     enabled: true
-    routeName: 'Lillydale'
+    routeName: 'Lilydale'
     stopName: 'Southern Cross'
-    directionName: 'Lillydale'
+    directionName: 'Lilydale'
     # Leave blank to use the PTV_DEVID / PTV_KEY environment variables instead.
     ptv_devid: ''
     ptv_key: ''
