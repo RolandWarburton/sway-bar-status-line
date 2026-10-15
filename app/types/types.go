@@ -8,6 +8,7 @@ type Modules struct {
 	CPU     ModuleCpu     `yaml:"CPU"`
 	MEMORY  ModuleMemory  `yaml:"MEMORY"`
 	DISK    ModuleDisk    `yaml:"DISK"`
+	LID     ModuleLid     `yaml:"LID"`
 }
 
 type ModuleTime struct {
@@ -42,6 +43,10 @@ type ModuleMemory struct {
 type ModuleDisk struct {
 	Enabled bool `yaml:"enabled"`
 	Partitions []DiskPartition `yaml:"partitions"`
+}
+
+type ModuleLid struct {
+	Enabled bool `yaml:"enabled"`
 }
 
 type DiskPartition struct {

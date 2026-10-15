@@ -17,6 +17,8 @@ modules:
     enabled: true
   MEMORY:
     enabled: true
+  LID:
+    enabled: true
   DISK:
     enabled: true
     partitions:
